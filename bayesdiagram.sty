@@ -73,12 +73,12 @@
 %
 % CODE TO DRAW RANDOM VARIABLE NODE CONTENT
 %
-% Arguments for \bd@draw@randomvar:
+% Arguments for \bd@draw@distribution:
 %    1) label prefix for sublabels ("@temp" if unspecified)
 %    2) text inside node (usually the name of the random variable)
 %
 % -----------------------------------------------------------------
-\long\def\bd@draw@randomvar#1#2{
+\long\def\bd@draw@distribution#1#2{
      \begin{axis}[width=4cm, height=3cm,   
                  axis x line=none, axis y line=none, 
                  ymin=0, xmin=\bd@xmin, xmax=\bd@xmax, 
@@ -141,7 +141,7 @@
 
 % -----------------------------------------------------------------
 %
-% MAIN IMPLEMENTATION OF THE \randomvar COMMAND
+% MAIN IMPLEMENTATION OF THE \distribution COMMAND
 %
 % Arguments:
 %    1) options
@@ -151,7 +151,7 @@
 %
 % -----------------------------------------------------------------
 
-\long\def\randomvar@impl#1#2#3#4{%
+\long\def\distribution@impl#1#2#3#4{%
   \begingroup
   \pgfkeys{/tikz/bayes/.cd, #1}%
   \pgfkeysgetvalue{/tikz/bayes/distribution}{\distribution}%
@@ -166,15 +166,15 @@
   \def\@tmp@nodeposition{#3}%
   \ifx\@tmp@nodeposition\@empty%
      \ifx\@tmp@nodelabel\@empty%
-        \node[bayes/node, matrix] { \bd@draw@randomvar{@temp}{} \\ };%
+        \node[bayes/node, matrix] { \bd@draw@distribution{@temp}{} \\ };%
      \else
-        \node[bayes/node, matrix] (#2) { \bd@draw@randomvar{#2}{} \\ };%
+        \node[bayes/node, matrix] (#2) { \bd@draw@distribution{#2}{} \\ };%
      \fi
   \else
      \ifx\@tmp@nodelabel\@empty%
-        \node[bayes/node, matrix] at (#3) { \bd@draw@randomvar{@temp}{} \\ };%
+        \node[bayes/node, matrix] at (#3) { \bd@draw@distribution{@temp}{} \\ };%
      \else
-        \node[bayes/node, matrix] at (#3) (#2) { \bd@draw@randomvar{#2}{} \\ };%
+        \node[bayes/node, matrix] at (#3) (#2) { \bd@draw@distribution{#2}{} \\ };%
      \fi
   \fi
   \endgroup
@@ -183,39 +183,39 @@
 
 % -----------------------------------------------------------------
 %
-% INTERFACE FOR \randomvar
+% INTERFACE FOR \distribution
 %
 % -----------------------------------------------------------------
-\long\def\randomvar@named@withcoord#1#2(#3){
-  \randomvar@impl{#1}{#2}{#3}%
+\long\def\distribution@named@withcoord#1#2(#3){
+  \distribution@impl{#1}{#2}{#3}%
 }
-\long\def\randomvar@named@at#1#2at{%
+\long\def\distribution@named@at#1#2at{%
   \pgfutil@ifnextchar ({%
-    \randomvar@named@withcoord{#1}{#2}%
+    \distribution@named@withcoord{#1}{#2}%
   }{}%
 }
 
-\long\def\randomvar@named#1(#2){%
+\long\def\distribution@named#1(#2){%
   \pgfutil@ifnextchar a{%
-     \randomvar@named@at{#1}{#2}%
+     \distribution@named@at{#1}{#2}%
   }{%
-     \randomvar@named@withcoord{#1}{#2}()%
+     \distribution@named@withcoord{#1}{#2}()%
   }%
 }
 
-\long\def\randomvar@[#1]{%
+\long\def\distribution@[#1]{%
   \pgfutil@ifnextchar ({%
-     \randomvar@named{#1}%
+     \distribution@named{#1}%
   }{%
-     \randomvar@named{#1}()%
+     \distribution@named{#1}()%
   }%
 }
 
-\def\randomvar{
+\def\distribution{
    \pgfutil@ifnextchar [{%
-      \randomvar@%
+      \distribution@%
    }{%
-      \randomvar@[]%
+      \distribution@[]%
    }%
 }
 

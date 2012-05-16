@@ -24,14 +24,14 @@
 
 \begin{tikzpicture}[node distance=3cm and 2cm, >=stealth]
 
-\randomvar[gaussian]                               (H0) {M_0, T_0};
-\randomvar[exponential, node/.style={right of=H0}] (H1) {M_1, T_1};
+\distribution[gaussian]                               (H0) {M_0, T_0};
+\distribution[exponential, node/.style={right of=H0}] (H1) {M_1, T_1};
 
 \bayesequation[below of=H1] (eqn) {\param{\beta_0} + \param{\beta_1} x_i};
 
-\randomvar[gamma, node/.style={right of=eqn}] (H2) {S, R};
-\randomvar[normal, node/.style={right of=H2}] (H4) {\nu, \sigma};  
-\randomvar[normal, node/.style={below of=eqn}] (H5) {\mu_i, \tau};
+\distribution[gamma, node/.style={right of=eqn}] (H2) {S, R};
+\distribution[normal, node/.style={right of=H2}] (H4) {\nu, \sigma};  
+\distribution[normal, node/.style={below of=eqn}] (H5) {\mu_i, \tau};
 
 \draw[->] (eqn) -- node [anchor=east] {$=$} (H5.center);          
 \draw[->] (H0) -- node [anchor=east] {$\sim$} (eqn parameter 1);

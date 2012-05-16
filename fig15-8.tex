@@ -24,17 +24,17 @@
 
 \begin{tikzpicture}[node distance=3cm and 2cm, >=stealth]
 
-\randomvar[gaussian]                           (H1) {M, T};
-\randomvar[gamma, node/.style={right of=H1}]   (H2) {S_\tau, R_\tau};
-\randomvar[gamma, node/.style={right of=H2}]   (H3) {S_m, R_m};
-\randomvar[gamma, node/.style={right of=H3}]   (H4) {S_d, R_d};
+\distribution[gaussian]                           (H1) {M, T};
+\distribution[gamma, node/.style={right of=H1}]   (H2) {S_\tau, R_\tau};
+\distribution[gamma, node/.style={right of=H2}]   (H3) {S_m, R_m};
+\distribution[gamma, node/.style={right of=H3}]   (H4) {S_d, R_d};
 
 \bayesequation[below of=H3, yshift=40pt] (eqn 1) {\param{m^2} / \param{d^2} };
 \bayesequation[right of=eqn 1] (eqn 2) {\param{m} / \param{d^2} };
 
-\randomvar[normal, node/.style={below of=H2}]  (H5) {\mu_G, \tau_G};
-\randomvar[gamma,  node/.style={below of=H3}]  (H6) {s_G, r_G};  
-\randomvar[normal, node/.style={below of=H5}]  (H7) {\mu_j, \tau_j};
+\distribution[normal, node/.style={below of=H2}]  (H5) {\mu_G, \tau_G};
+\distribution[gamma,  node/.style={below of=H3}]  (H6) {s_G, r_G};  
+\distribution[normal, node/.style={below of=H5}]  (H7) {\mu_j, \tau_j};
 
 \draw[->] (H3.south) -- node [anchor=east] {$\sim$} (eqn 1 parameter 1);
 \draw[->] (H3.south) -- node [pos=0.8, anchor=north] {$\sim$} (eqn 2 parameter 1);
