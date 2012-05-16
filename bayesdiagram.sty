@@ -1,0 +1,306 @@
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+
+\ProvidesPackage{bayesdiagram}[2012/05/08 bayesdiagram]
+
+\RequirePackage{tikz}
+\RequirePackage{pgfplots}
+\RequirePackage{ifthen}
+
+\usetikzlibrary{calc}
+\usetikzlibrary{matrix}
+
+\makeatletter
+
+% -----------------------------------------------------------------
+%
+% INITIALIZATION OF PGF KEYS
+%
+% -----------------------------------------------------------------
+\pgfkeys{/tikz/bayes/label/.initial={}}
+\pgfkeys{/tikz/bayes/name/.initial={}}
+\pgfkeys{/tikz/bayes/distribution/.initial={0}}
+\pgfkeys{/tikz/bayes/distribution name/.initial={}}
+\pgfkeys{/tikz/bayes/pdf xmin/.initial={0.1}}
+\pgfkeys{/tikz/bayes/pdf xmax/.initial={1}}
+\pgfkeys{/tikz/bayes/pdf name pos/.initial={0.5}}
+\pgfkeys{/tikz/bayes/pdf parameter pos/.initial={0.66}}
+\pgfkeys{/tikz/bayes/parameters/.initial={}}
+
+\tikzset{/bayes/pdf/.style={}}
+\tikzstyle{bayes/node}=[]
+\tikzstyle{bayes/parameter node}=[anchor=south west, font=\footnotesize, inner sep=0.5pt, yshift=2pt]
+\tikzstyle{bayes/distribution name node}=[font=\sffamily\tiny, yshift=1pt]
+
+\newcommand\bayesdiagramset[1]{\pgfkeys{/tikz/bayes/.cd, #1}}
+
+\definecolor{pdfblue}{rgb}{0.45,0.76,0.88}
+\bayesdiagramset{pdf/.style={pdfblue, semithick}}
+
+\newlength\bd@x
+\newlength\bd@y
+\newlength\bd@tmp
+\newcounter{bd@eqn@params}
+
+% -----------------------------------------------------------------
+%
+% UTILITY COMMANDS
+%
+% -----------------------------------------------------------------
+\newcommand\getwidthofnode[2]{%
+    \pgfextractx{#1}{\pgfpointanchor{#2}{east}}%
+    \pgfextractx{\pgf@xa}{\pgfpointanchor{#2}{west}}% 
+    \addtolength{#1}{-\pgf@xa}%
+}
+
+
+% -----------------------------------------------------------------
+%
+% CODE TO DRAW RANDOM VARIABLE NODE CONTENT
+%
+% Arguments for \bd@draw@randomvar:
+%    1) label prefix for sublabels ("@temp" if unspecified)
+%    2) text inside node (usually the name of the random variable)
+%
+% -----------------------------------------------------------------
+\long\def\bd@draw@randomvar#1#2{
+     \begin{axis}[width=4cm, height=3cm,   
+                 axis x line=none, axis y line=none, 
+                 ymin=0, xmin=\bd@xmin, xmax=\bd@xmax, 
+                 clip=false]
+        %                              
+        % --- draw pdf
+        \addplot[/tikz/bayes/pdf, mark=none, 
+                 domain=\bd@xmin:\bd@xmax, samples=50, smooth] {\distribution};
+        %                   
+        % --- draw black line under it
+        \draw[yshift=-2pt] (rel axis cs: 0, 0) -- (rel axis cs: 1, 0);
+        %                               
+        % --- add labels
+        \node at (rel axis cs: \bd@namepos, 0.3) {$#2$};
+        \node[anchor=base, bayes/distribution name node] 
+              at (rel axis cs: \bd@namepos, 0) {\distname};
+        %                               
+        \pgfmathdeclarefunction{x}{0}%
+             {\pgfmathparse{\bd@xmin + \bd@parpos * (\bd@xmax - \bd@xmin)}}
+        \pgfmathsetmacro\bd@parx{x}
+        \pgfmathsetmacro\bd@pary{\distribution}
+        %
+        \foreach [count=\ci] \param in \bd@parameters {
+           \edef\tmp{\noexpand\draw
+              let \noexpand\p1 = (axis cs: \bd@parx, \bd@pary) in (\noexpand\p1) 
+                  node (temp parameter \ci) {};}
+           \tmp
+        }
+     \end{axis} 
+     
+     \bd@x=0pt
+     \foreach [count=\ci] \param in \bd@parameters {
+        \ifthenelse{\ci > 1}{
+        \edef\tmp{\noexpand\node [bayes/parameter node, 
+                  xshift=\bd@x, anchor=base west] (#1 parameter comma \ci) 
+              at (temp parameter \ci.center) {$,$};              
+              \noexpand\getwidthofnode{\noexpand\bd@tmp}{#1 parameter comma \ci}
+              }
+        \tmp
+        }{}
+        %
+        \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp}
+        \edef\tmp{\noexpand\node [bayes/parameter node, 
+                  xshift=\bd@x, anchor=base west] (#1 parameter \ci) 
+              at (temp parameter \ci.center) {$\param$};              
+              \noexpand\getwidthofnode{\noexpand\bd@tmp}{#1 parameter \ci}
+              }
+        \tmp
+        \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp}
+     }
+}
+
+% -----------------------------------------------------------------
+%
+% MAIN IMPLEMENTATION OF THE \randomvar COMMAND
+%
+% Arguments:
+%    1) options
+%    2) label of node (\empty if unspecified)
+%    3) position (\empty if unspecified)
+%    4) name of random variable
+%
+% -----------------------------------------------------------------
+
+\long\def\randomvar@impl#1#2#3#4{%
+  \begingroup
+  \pgfkeys{/tikz/bayes/.cd, #1}%
+  \pgfkeysgetvalue{/tikz/bayes/distribution}{\distribution}%
+  \pgfkeysgetvalue{/tikz/bayes/distribution name}{\distname}%
+  \pgfkeysgetvalue{/tikz/bayes/pdf xmin}{\bd@xmin}%
+  \pgfkeysgetvalue{/tikz/bayes/pdf xmax}{\bd@xmax}%
+  \pgfkeysgetvalue{/tikz/bayes/pdf name pos}{\bd@namepos}%
+  \pgfkeysgetvalue{/tikz/bayes/pdf parameter pos}{\bd@parpos}%
+  \pgfkeysgetvalue{/tikz/bayes/parameters}{\bd@parameters}%
+
+  \def\@tmp@nodelabel{#2}%
+  \def\@tmp@nodeposition{#3}%
+  \ifx\@tmp@nodeposition\@empty%
+     \ifx\@tmp@nodelabel\@empty%
+        \node[bayes/node, matrix] { \bd@draw@randomvar{@temp}{#4} \\ };%
+     \else
+        \node[bayes/node, matrix] (#2) { \bd@draw@randomvar{#2}{#4} \\ };%
+     \fi
+  \else
+     \ifx\@tmp@nodelabel\@empty%
+        \node[bayes/node, matrix] at (#3) { \bd@draw@randomvar{@temp}{#4} \\ };%
+     \else
+        \node[bayes/node, matrix] at (#3) (#2) { \bd@draw@randomvar{#2}{#4} \\ };%
+     \fi
+  \fi
+  \endgroup
+}
+
+
+% -----------------------------------------------------------------
+%
+% INTERFACE FOR \randomvar
+%
+% -----------------------------------------------------------------
+\long\def\randomvar@named@withcoord#1#2(#3){
+  \randomvar@impl{#1}{#2}{#3}%
+}
+\long\def\randomvar@named@at#1#2at{%
+  \pgfutil@ifnextchar ({%
+    \randomvar@named@withcoord{#1}{#2}%
+  }{}%
+}
+
+\long\def\randomvar@named#1(#2){%
+  \pgfutil@ifnextchar a{%
+     \randomvar@named@at{#1}{#2}%
+  }{%
+     \randomvar@named@withcoord{#1}{#2}()%
+  }%
+}
+
+\long\def\randomvar@[#1]{%
+  \pgfutil@ifnextchar ({%
+     \randomvar@named{#1}%
+  }{%
+     \randomvar@named{#1}()%
+  }%
+}
+
+\def\randomvar{
+   \pgfutil@ifnextchar [{%
+      \randomvar@%
+   }{%
+      \randomvar@[]%
+   }%
+}
+
+
+% -----------------------------------------------------------------
+%
+% MAIN IMPLEMENTATION OF THE \bayesequation COMMAND
+%
+% Arguments:
+%    1) options
+%    2) label of node (\empty if unspecified)
+%    3) position (\empty if unspecified)
+%    4) name of random variable
+%
+% -----------------------------------------------------------------
+
+\def\param@#1#2{ $ \& %
+  \node (#1 parameter \arabic{bd@eqn@params}) {$#2$}; \stepcounter{bd@eqn@params} %
+  \& $ }
+  
+\def\param#1{%
+  \expandafter\param@{\bd@cur@paramlabel}{#1}
+}%
+
+\long\def\bayesequation@impl#1#2#3#4{
+   \def\bd@cur@paramlabel{#2}%
+\matrix[matrix of nodes, ampersand replacement=\&, 
+        column sep=0pt, nodes={inner sep=1pt}, #1] (#2) { 
+   \setcounter{bd@eqn@params}{1}%
+   $#4$ \\ };
+}
+
+% -----------------------------------------------------------------
+%
+% INTERFACE FOR \bayesequation
+%
+% -----------------------------------------------------------------
+\long\def\bayesequation@named@withcoord#1#2(#3){
+  \bayesequation@impl{#1}{#2}{#3}%
+}
+\long\def\bayesequation@named@at#1#2at{%
+  \pgfutil@ifnextchar ({%
+    \bayesequation@named@withcoord{#1}{#2}%
+  }{}%
+}
+
+\long\def\bayesequation@named#1(#2){%
+  \pgfutil@ifnextchar a{%
+     \bayesequation@named@at{#1}{#2}%
+  }{%
+     \bayesequation@named@withcoord{#1}{#2}()%
+  }%
+}
+
+\long\def\bayesequation@[#1]{%
+  \pgfutil@ifnextchar ({%
+     \bayesequation@named{#1}%
+  }{%
+     \bayesequation@named{#1}()%
+  }%
+}
+
+\def\bayesequation{
+   \pgfutil@ifnextchar [{%
+      \bayesequation@%
+   }{%
+      \bayesequation@[]%
+   }%
+}
+
+
+% -----------------------------------------------------------------
+%
+% DECLARATION OF DISTRIBUTIONS
+%
+% Note that distributions are declared up to a constant 
+% because pgfplots scales the plots automatically
+%
+% -----------------------------------------------------------------
+
+\pgfmathdeclarefunction{gausspdf}{2}{%
+  \pgfmathparse{exp(-((x-#1)^2)/(2*#2^2))}%
+}
+
+\pgfmathdeclarefunction{exppdf}{1}{%
+  \pgfmathparse{exp(-(#1) * x)}%
+}
+
+\pgfmathdeclarefunction{gammapdf}{2}{%
+  \pgfmathparse{(x^(#1)) * exp(-(#2)*x)}%
+}
+
+\tikzstyle{bayes/gaussian}=[distribution={gausspdf(0, 1)}, 
+                            distribution name=normal,
+                            pdf xmin=-3, pdf xmax=3,
+                            parameters={\mu, \tau}]
+
+\tikzstyle{bayes/normal}=[gaussian]
+
+\tikzstyle{bayes/gamma}=[distribution={gammapdf(2, 2)}, 
+                         distribution name=gamma,
+                         pdf xmin=0, pdf xmax=6,
+                         pdf name pos=0.2,
+                         parameters={k, \theta}]
+
+\tikzstyle{bayes/exponential}=[distribution={exppdf(5)}, 
+                               distribution name=exponential,
+                               pdf name pos=0.2,
+                               parameters={\lambda}]
+
+
+
