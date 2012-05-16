@@ -25,7 +25,7 @@
 \begin{tikzpicture}[node distance=3cm and 2cm, >=stealth]
 
 \distribution[gaussian]                               (H1) {M_0, T_0};
-\distribution[exponential, node/.style={right of=H1}] (H2) {M_1, T_1};
+\distribution[exponential, node/.style={right of=H1}] (H2) {\lambda};
 
 \bayesequation[below of=H2] (eqn) {\param{\beta_0} + \param{\beta_1} \mathbf{x}_i};
 

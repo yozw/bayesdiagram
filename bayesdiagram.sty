@@ -41,10 +41,12 @@
 \pgfkeys{/tikz/bayes/pdf name pos/.initial={0.5}}
 \pgfkeys{/tikz/bayes/pdf parameter pos/.initial={0.66}}
 \pgfkeys{/tikz/bayes/parameters/.initial={}}
+\pgfkeys{/tikz/bayes/main parameter count/.initial={1}}
 
 \tikzset{/bayes/pdf/.style={}}
 \tikzstyle{bayes/node}=[]
 \tikzstyle{bayes/parameter node}=[anchor=south west, font=\footnotesize, inner sep=2pt, yshift=2pt]
+\tikzstyle{bayes/main parameter node}=[anchor=south west, inner sep=2pt]
 \tikzstyle{bayes/distribution name node}=[font=\sffamily\tiny, yshift=1pt]
 
 \newcommand\bayesdiagramset[1]{\pgfkeys{/tikz/bayes/.cd, #1}}
@@ -99,8 +101,7 @@
         \addplot[/tikz/bayes/pdf, mark=none, area style,  fill=none, 
                  domain=\bd@xmin:\bd@xmax, samples=50, smooth] {\distribution};
         %                               
-        % --- add labels
-        \node at (rel axis cs: \bd@namepos, 0.3) {$#2$};
+        % --- add distribution name
         \node[anchor=base, bayes/distribution name node] 
               at (rel axis cs: \bd@namepos, 0) {\distname};
         %                               
@@ -109,33 +110,50 @@
         \pgfmathsetmacro\bd@parx{x}
         \pgfmathsetmacro\bd@pary{\distribution}
         %
-        \foreach [count=\ci] \param in \bd@parameters {
-           \edef\tmp{\noexpand\draw
-              let \noexpand\p1 = (axis cs: \bd@parx, \bd@pary) in (\noexpand\p1) 
-                  node (temp parameter \ci) {};}
-           \tmp
-        }
+        % --- add anchors for parameters
+        \node[anchor=center] 
+            (temp main parameter) at (rel axis cs: \bd@namepos, 0.3) {};
+        \edef\tmp{\noexpand\draw
+           let \noexpand\p1 = (axis cs: \bd@parx, \bd@pary) in (\noexpand\p1) 
+               node (temp aux parameter) {};}
+        \tmp
      \end{axis} 
-     
+     %
+     % --- draw parameters
+     \bd@x=0pt
+     \foreach [count=\ci] \@param in \bd@parameters {
+        \ifthenelse{\ci > \bd@mainparcount}{}{%
+          \edef\tmp{\noexpand\node [bayes/main parameter node, 
+                    xshift=\bd@x, anchor=base] (#1 parameter \ci) 
+                at (temp main parameter.center) {$\@param$};              
+                \noexpand\getwidthofnode{\noexpand\bd@tmp}{#1 parameter \ci}
+                }
+          \tmp
+          \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp-4pt}
+        }
+     }
      \bd@x=2pt
      \foreach [count=\ci] \@param in \bd@parameters {
-        \ifthenelse{\ci > 1}{
-        \edef\tmp{\noexpand\node [bayes/parameter node, 
-                  xshift=\bd@x, anchor=base west] (#1 parameter comma \ci) 
-              at (temp parameter \ci.center) {$, $};              
-              \noexpand\getwidthofnode{\noexpand\bd@tmp}{#1 parameter comma \ci}
-              }
-        \tmp
+        \ifthenelse{\ci > \bd@mainparcount}{
+          \pgfmathtruncatemacro\@tmp{1+\bd@mainparcount}%
+          \ifthenelse{\ci > \@tmp}{%
+          \edef\tmp{\noexpand\node [bayes/parameter node, 
+                    xshift=\bd@x, anchor=base west] (#1 parameter comma \ci) 
+                at (temp aux parameter.center) {$,$};              
+                \noexpand\getwidthofnode{\noexpand\bd@tmp}{#1 parameter comma \ci}
+                }
+          \tmp
+          }{}
+          %
+          \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp-4pt}
+          \edef\tmp{\noexpand\node [bayes/parameter node, 
+                    xshift=\bd@x, anchor=base west] (#1 parameter \ci) 
+                at (temp aux parameter.center) {$\@param$};              
+                \noexpand\getwidthofnode{\noexpand\bd@tmp}{#1 parameter \ci}
+                }
+          \tmp
+          \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp-4pt}
         }{}
-        %
-        \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp-4pt}
-        \edef\tmp{\noexpand\node [bayes/parameter node, 
-                  xshift=\bd@x, anchor=base west] (#1 parameter \ci) 
-              at (temp parameter \ci.center) {$\@param$};              
-              \noexpand\getwidthofnode{\noexpand\bd@tmp}{#1 parameter \ci}
-              }
-        \tmp
-        \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp-4pt}
      }
 }
 
@@ -160,6 +178,7 @@
   \pgfkeysgetvalue{/tikz/bayes/pdf xmax}{\bd@xmax}%
   \pgfkeysgetvalue{/tikz/bayes/pdf name pos}{\bd@namepos}%
   \pgfkeysgetvalue{/tikz/bayes/pdf parameter pos}{\bd@parpos}%
+  \pgfkeysgetvalue{/tikz/bayes/main parameter count}{\bd@mainparcount}%
   \def\bd@parameters{#4}%
    %
   \def\@tmp@nodelabel{#2}%
@@ -315,7 +334,8 @@
 \tikzstyle{bayes/gaussian}=[distribution={gausspdf(0, 1)}, 
                             distribution name=normal,
                             pdf xmin=-3.5, pdf xmax=3.5,
-                            parameters={\mu, \tau}]
+                            parameters={\mu, \tau},
+                            main parameter count=1]
 
 \tikzstyle{bayes/normal}=[gaussian]
 
@@ -323,17 +343,21 @@
                          distribution name=gamma,
                          pdf xmin=0, pdf xmax=6,
                          pdf name pos=0.2,
+                         pdf parameter pos=0.6, 
+                         main parameter count=0,
                          parameters={k, \theta}]
 
 \tikzstyle{bayes/beta}=[distribution={betapdf(2, 2)}, 
                          distribution name=beta,
                          pdf xmin=0, pdf xmax=1,
-                         pdf name pos=0.5]
+                         pdf name pos=0.5,
+                         main parameter count=2]
 
 \tikzstyle{bayes/exponential}=[distribution={exppdf(5)}, 
                                distribution name=exponential,
                                pdf name pos=0.2,
-                               parameters={\lambda}]
+                               parameters={\lambda},
+                               main parameter count=0]
 
 
 
