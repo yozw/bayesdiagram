@@ -36,18 +36,19 @@
 \randomvar[gamma,  node/.style={below of=H3}]  (H6) {s_G, r_G};  
 \randomvar[normal, node/.style={below of=H5}]  (H7) {\mu_j, \tau_j};
 
-\draw[->] (H1) -- (H5 parameter 1);
-\draw[->] (H2) -- (H5 parameter 2);
-\draw[->] (H5) -- (H7 parameter 1);
-\draw[->] (H6) -- (H7 parameter 2);
+\draw[->] (H3.south) -- node [anchor=east] {$\sim$} (eqn 1 parameter 1);
+\draw[->] (H3.south) -- node [pos=0.8, anchor=north] {$\sim$} (eqn 2 parameter 1);
+\draw[->] (H4.south) -- node [pos=0.8, anchor=north] {$\sim$} (eqn 1 parameter 2);
+\draw[->] (H4.south) -- node [anchor=west] {$\sim$} (eqn 2 parameter 2);
 
-\draw[->] (H3.south) -- (eqn 1 parameter 1);
-\draw[->] (H3.south) -- (eqn 2 parameter 1);
-\draw[->] (H4.south) -- (eqn 1 parameter 2);
-\draw[->] (H4.south) -- (eqn 2 parameter 2);
+\draw[->] (H1) -- node [anchor=east] {$\sim$} (H5 parameter 1);
+\draw[->] (H2) -- node [anchor=east] {$\sim$} (H5 parameter 2);
+\draw[->] (H5) -- node [anchor=east] {$\sim$} (H7 parameter 1);
+\draw[->] (H6) -- node [anchor=west] {$\sim$} (H7 parameter 2);
 
-\draw[->] (eqn 1) -- (H6 parameter 1);
-\draw[->] (eqn 2) -- (H6 parameter 2);
+
+\draw[->] (eqn 1) -- node [anchor=east] {$=$} (H6 parameter 1);
+\draw[->] (eqn 2) -- node [anchor=east] {$=$} (H6 parameter 2);
 
 \end{tikzpicture}
 

@@ -50,7 +50,7 @@
 \newcommand\bayesdiagramset[1]{\pgfkeys{/tikz/bayes/.cd, #1}}
 
 \definecolor{pdfblue}{rgb}{0.45,0.76,0.88}
-\bayesdiagramset{pdf/.style={pdfblue, semithick}}
+\bayesdiagramset{pdf/.style={pdfblue, semithick, fill=pdfblue!10!white}}
 
 \newlength\bd@x
 \newlength\bd@y
@@ -83,13 +83,21 @@
                  axis x line=none, axis y line=none, 
                  ymin=0, xmin=\bd@xmin, xmax=\bd@xmax, 
                  clip=false]
-        %                              
-        % --- draw pdf
-        \addplot[/tikz/bayes/pdf, mark=none, 
-                 domain=\bd@xmin:\bd@xmax, samples=50, smooth] {\distribution};
-        %                   
-        % --- draw black line under it
+        %                    
+        % --- draw black line under the graph of the pdf 
+        \fill[/tikz/bayes/pdf, draw=none]
+                (rel axis cs: 0, 0) 
+             -- (rel axis cs: 1, 0)
+             -- ($(rel axis cs: 1, 0)+(0, -2pt)$) 
+             -- ($(rel axis cs: 0, 0)+(0, -2pt)$);  
         \draw[yshift=-2pt] (rel axis cs: 0, 0) -- (rel axis cs: 1, 0);
+        %       
+        % --- draw pdf itself
+        \addplot[/tikz/bayes/pdf, mark=none, area style, draw=none,  
+                 domain=\bd@xmin:\bd@xmax, samples=50, smooth] {\distribution}
+                 \closedcycle;
+        \addplot[/tikz/bayes/pdf, mark=none, area style,  fill=none, 
+                 domain=\bd@xmin:\bd@xmax, samples=50, smooth] {\distribution};
         %                               
         % --- add labels
         \node at (rel axis cs: \bd@namepos, 0.3) {$#2$};
