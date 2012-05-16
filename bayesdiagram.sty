@@ -44,7 +44,7 @@
 
 \tikzset{/bayes/pdf/.style={}}
 \tikzstyle{bayes/node}=[]
-\tikzstyle{bayes/parameter node}=[anchor=south west, font=\footnotesize, inner sep=0.5pt, yshift=2pt]
+\tikzstyle{bayes/parameter node}=[anchor=south west, font=\footnotesize, inner sep=2pt, yshift=2pt]
 \tikzstyle{bayes/distribution name node}=[font=\sffamily\tiny, yshift=1pt]
 
 \newcommand\bayesdiagramset[1]{\pgfkeys{/tikz/bayes/.cd, #1}}
@@ -117,7 +117,7 @@
         }
      \end{axis} 
      
-     \bd@x=0pt
+     \bd@x=2pt
      \foreach [count=\ci] \@param in \bd@parameters {
         \ifthenelse{\ci > 1}{
         \edef\tmp{\noexpand\node [bayes/parameter node, 
@@ -128,14 +128,14 @@
         \tmp
         }{}
         %
-        \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp}
+        \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp-4pt}
         \edef\tmp{\noexpand\node [bayes/parameter node, 
                   xshift=\bd@x, anchor=base west] (#1 parameter \ci) 
               at (temp parameter \ci.center) {$\@param$};              
               \noexpand\getwidthofnode{\noexpand\bd@tmp}{#1 parameter \ci}
               }
         \tmp
-        \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp}
+        \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp-4pt}
      }
 }
 
@@ -308,6 +308,10 @@
   \pgfmathparse{(x^(#1)) * exp(-(#2)*x)}%
 }
 
+\pgfmathdeclarefunction{betapdf}{2}{%
+  \pgfmathparse{(x^((#1)-1) * (1-x)^((#2)-1}%
+}
+
 \tikzstyle{bayes/gaussian}=[distribution={gausspdf(0, 1)}, 
                             distribution name=normal,
                             pdf xmin=-3.5, pdf xmax=3.5,
@@ -320,6 +324,11 @@
                          pdf xmin=0, pdf xmax=6,
                          pdf name pos=0.2,
                          parameters={k, \theta}]
+
+\tikzstyle{bayes/beta}=[distribution={betapdf(2, 2)}, 
+                         distribution name=beta,
+                         pdf xmin=0, pdf xmax=1,
+                         pdf name pos=0.5]
 
 \tikzstyle{bayes/exponential}=[distribution={exppdf(5)}, 
                                distribution name=exponential,
