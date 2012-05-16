@@ -24,20 +24,20 @@
 
 \begin{tikzpicture}[node distance=3cm and 2cm, >=stealth]
 
-\randomvar[gaussian]                               (M0) {M_0};
-\randomvar[exponential, node/.style={right of=M0}] (M1) {M_1};
+\randomvar[gaussian]                               (H0) {M_0, T_0};
+\randomvar[exponential, node/.style={right of=H0}] (H1) {M_1, T_1};
 
-\bayesequation[below of=M1] (eqn) {\param{\beta_0} + \param{\beta_1} x_i};
+\bayesequation[below of=H1] (eqn) {\param{\beta_0} + \param{\beta_1} x_i};
 
-\randomvar[gamma, node/.style={right of=eqn}] (M2) {M_2};
-\randomvar[normal, node/.style={right of=M2}] (M4) {M_4};  
-\randomvar[normal, node/.style={below of=eqn}] (mui) {\mu_i};
+\randomvar[gamma, node/.style={right of=eqn}] (H2) {S, R};
+\randomvar[normal, node/.style={right of=H2}] (H4) {\nu, \sigma};  
+\randomvar[normal, node/.style={below of=eqn}] (H5) {\mu_i, \tau};
 
-\draw[->] (eqn) -- node [anchor=east] {$=$} (mui.center);          
-\draw[->] (M0) -- node [anchor=east] {$\sim$} (eqn parameter 1);
-\draw[->] (M1) -- node [anchor=east] {$\sim$} (eqn parameter 2);
-\draw[->] (M2) -- node [anchor=east] {$\sim$} (mui parameter 1);
-\draw[->] (M4) -- node [anchor=east] {$\sim$} (mui parameter 2);
+\draw[->] (eqn) -- node [anchor=east] {$=$} (H5.center);          
+\draw[->] (H0) -- node [anchor=east] {$\sim$} (eqn parameter 1);
+\draw[->] (H1) -- node [anchor=east] {$\sim$} (eqn parameter 2);
+\draw[->] (H2) -- node [anchor=east] {$\sim$} (H5 parameter 1);
+\draw[->] (H4) -- node [anchor=east] {$\sim$} (H5 parameter 2);
 
 \end{tikzpicture}
 

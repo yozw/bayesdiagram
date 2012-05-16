@@ -110,11 +110,11 @@
      \end{axis} 
      
      \bd@x=0pt
-     \foreach [count=\ci] \param in \bd@parameters {
+     \foreach [count=\ci] \@param in \bd@parameters {
         \ifthenelse{\ci > 1}{
         \edef\tmp{\noexpand\node [bayes/parameter node, 
                   xshift=\bd@x, anchor=base west] (#1 parameter comma \ci) 
-              at (temp parameter \ci.center) {$,$};              
+              at (temp parameter \ci.center) {$, $};              
               \noexpand\getwidthofnode{\noexpand\bd@tmp}{#1 parameter comma \ci}
               }
         \tmp
@@ -123,7 +123,7 @@
         \pgfmathsetlength{\global\bd@x}{\bd@x+\bd@tmp}
         \edef\tmp{\noexpand\node [bayes/parameter node, 
                   xshift=\bd@x, anchor=base west] (#1 parameter \ci) 
-              at (temp parameter \ci.center) {$\param$};              
+              at (temp parameter \ci.center) {$\@param$};              
               \noexpand\getwidthofnode{\noexpand\bd@tmp}{#1 parameter \ci}
               }
         \tmp
@@ -139,7 +139,7 @@
 %    1) options
 %    2) label of node (\empty if unspecified)
 %    3) position (\empty if unspecified)
-%    4) name of random variable
+%    4) parameters of random variable
 %
 % -----------------------------------------------------------------
 
@@ -152,21 +152,21 @@
   \pgfkeysgetvalue{/tikz/bayes/pdf xmax}{\bd@xmax}%
   \pgfkeysgetvalue{/tikz/bayes/pdf name pos}{\bd@namepos}%
   \pgfkeysgetvalue{/tikz/bayes/pdf parameter pos}{\bd@parpos}%
-  \pgfkeysgetvalue{/tikz/bayes/parameters}{\bd@parameters}%
-
+  \def\bd@parameters{#4}%
+   %
   \def\@tmp@nodelabel{#2}%
   \def\@tmp@nodeposition{#3}%
   \ifx\@tmp@nodeposition\@empty%
      \ifx\@tmp@nodelabel\@empty%
-        \node[bayes/node, matrix] { \bd@draw@randomvar{@temp}{#4} \\ };%
+        \node[bayes/node, matrix] { \bd@draw@randomvar{@temp}{} \\ };%
      \else
-        \node[bayes/node, matrix] (#2) { \bd@draw@randomvar{#2}{#4} \\ };%
+        \node[bayes/node, matrix] (#2) { \bd@draw@randomvar{#2}{} \\ };%
      \fi
   \else
      \ifx\@tmp@nodelabel\@empty%
-        \node[bayes/node, matrix] at (#3) { \bd@draw@randomvar{@temp}{#4} \\ };%
+        \node[bayes/node, matrix] at (#3) { \bd@draw@randomvar{@temp}{} \\ };%
      \else
-        \node[bayes/node, matrix] at (#3) (#2) { \bd@draw@randomvar{#2}{#4} \\ };%
+        \node[bayes/node, matrix] at (#3) (#2) { \bd@draw@randomvar{#2}{} \\ };%
      \fi
   \fi
   \endgroup
@@ -220,12 +220,12 @@
 %    1) options
 %    2) label of node (\empty if unspecified)
 %    3) position (\empty if unspecified)
-%    4) name of random variable
+%    4) parameters of random variable
 %
 % -----------------------------------------------------------------
 
 \def\param@#1#2{ $ \& %
-  \node (#1 parameter \arabic{bd@eqn@params}) {$#2$}; \stepcounter{bd@eqn@params} %
+  \node (#1 parameter \arabic{bd@eqn@params}) {$#2$};  \stepcounter{bd@eqn@params} %
   \& $ }
   
 \def\param#1{%
@@ -235,7 +235,7 @@
 \long\def\bayesequation@impl#1#2#3#4{
    \def\bd@cur@paramlabel{#2}%
 \matrix[matrix of nodes, ampersand replacement=\&, 
-        column sep=0pt, nodes={inner sep=1pt}, #1] (#2) { 
+        column sep=0pt, nodes={inner sep=0pt}, #1] (#2) { 
    \setcounter{bd@eqn@params}{1}%
    $#4$ \\ };
 }
@@ -302,12 +302,12 @@
 
 \tikzstyle{bayes/gaussian}=[distribution={gausspdf(0, 1)}, 
                             distribution name=normal,
-                            pdf xmin=-3, pdf xmax=3,
+                            pdf xmin=-3.5, pdf xmax=3.5,
                             parameters={\mu, \tau}]
 
 \tikzstyle{bayes/normal}=[gaussian]
 
-\tikzstyle{bayes/gamma}=[distribution={gammapdf(2, 2)}, 
+\tikzstyle{bayes/gamma}=[distribution={gammapdf(2, 3)}, 
                          distribution name=gamma,
                          pdf xmin=0, pdf xmax=6,
                          pdf name pos=0.2,
