@@ -24,13 +24,14 @@
 
 \begin{tikzpicture}[node distance=3cm and 2cm, >=stealth]
 
-\distribution[gaussian]                               (H1) {M_0, T_0};
-\distribution[exponential, node/.style={right of=H1}] (H2) {\lambda};
+\distribution[gaussian]                 (H1) {M_0, T_0};
+\distribution[exponential, right of=H1] (H2) {\lambda};
 
-\bayesequation[below of=H2] (eqn) {\param{\beta_0} + \param{\beta_1} \mathbf{x}_i};
+\bayesequation[below of=H2] (eqn) 
+   {\param{\beta_0} + \param{\beta_1} \mathbf{x}_i};
 
-\distribution[gamma, node/.style={right of=eqn}] (H3) {S, R};
-\distribution[normal, node/.style={below of=eqn}] (H4) {\mu_i, \tau};
+\distribution[gamma, right of=eqn]      (H3) {S, R};
+\distribution[normal, below of=eqn]     (H4) {\mu_i, \tau};
 
 \draw[->] (eqn) -- node [anchor=east] {$=$} (H4 parameter 1);          
 \draw[->] (H1) -- node [anchor=east] {$\sim$} (eqn parameter 1);

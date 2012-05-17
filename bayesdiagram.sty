@@ -34,14 +34,14 @@
 % -----------------------------------------------------------------
 \pgfkeys{/tikz/bayes/label/.initial={}}
 \pgfkeys{/tikz/bayes/name/.initial={}}
-\pgfkeys{/tikz/bayes/distribution/.initial={0}}
-\pgfkeys{/tikz/bayes/distribution name/.initial={}}
-\pgfkeys{/tikz/bayes/pdf xmin/.initial={0.1}}
-\pgfkeys{/tikz/bayes/pdf xmax/.initial={1}}
-\pgfkeys{/tikz/bayes/pdf name pos/.initial={0.5}}
-\pgfkeys{/tikz/bayes/pdf parameter pos/.initial={0.66}}
-\pgfkeys{/tikz/bayes/parameters/.initial={}}
-\pgfkeys{/tikz/bayes/main parameter count/.initial={1}}
+\pgfkeys{/tikz/bayes/pdf/function/.initial={0}}
+\pgfkeys{/tikz/bayes/pdf/name/.initial={}}
+\pgfkeys{/tikz/bayes/pdf/xmin/.initial={0.1}}
+\pgfkeys{/tikz/bayes/pdf/xmax/.initial={1}}
+\pgfkeys{/tikz/bayes/pdf/name pos/.initial={0.5}}
+\pgfkeys{/tikz/bayes/pdf/parameter pos/.initial={0.66}}
+\pgfkeys{/tikz/bayes/pdf/parameters/.initial={}}
+\pgfkeys{/tikz/bayes/pdf/main parameter count/.initial={1}}
 
 \tikzset{/bayes/pdf/.style={}}
 \tikzstyle{bayes/node}=[]
@@ -81,6 +81,13 @@
 %
 % -----------------------------------------------------------------
 \long\def\bd@draw@distribution#1#2{
+  \pgfkeysgetvalue{/tikz/bayes/pdf/function}{\bd@pgffunction}%
+  \pgfkeysgetvalue{/tikz/bayes/pdf/name}{\bd@name}%
+  \pgfkeysgetvalue{/tikz/bayes/pdf/xmin}{\bd@xmin}%
+  \pgfkeysgetvalue{/tikz/bayes/pdf/xmax}{\bd@xmax}%
+  \pgfkeysgetvalue{/tikz/bayes/pdf/name pos}{\bd@namepos}%
+  \pgfkeysgetvalue{/tikz/bayes/pdf/parameter pos}{\bd@parpos}%
+  \pgfkeysgetvalue{/tikz/bayes/pdf/main parameter count}{\bd@mainparcount}%
      \begin{axis}[width=4cm, height=3cm,   
                  axis x line=none, axis y line=none, 
                  ymin=0, xmin=\bd@xmin, xmax=\bd@xmax, 
@@ -96,19 +103,19 @@
         %       
         % --- draw pdf itself
         \addplot[/tikz/bayes/pdf, mark=none, area style, draw=none,  
-                 domain=\bd@xmin:\bd@xmax, samples=50, smooth] {\distribution}
+                 domain=\bd@xmin:\bd@xmax, samples=50, smooth] {\bd@pgffunction}
                  \closedcycle;
         \addplot[/tikz/bayes/pdf, mark=none, area style,  fill=none, 
-                 domain=\bd@xmin:\bd@xmax, samples=50, smooth] {\distribution};
+                 domain=\bd@xmin:\bd@xmax, samples=50, smooth] {\bd@pgffunction};
         %                               
         % --- add distribution name
         \node[anchor=base, bayes/distribution name node] 
-              at (rel axis cs: \bd@namepos, 0) {\distname};
+              at (rel axis cs: \bd@namepos, 0) {\bd@name};
         %                               
         \pgfmathdeclarefunction{x}{0}%
              {\pgfmathparse{\bd@xmin + \bd@parpos * (\bd@xmax - \bd@xmin)}}
         \pgfmathsetmacro\bd@parx{x}
-        \pgfmathsetmacro\bd@pary{\distribution}
+        \pgfmathsetmacro\bd@pary{\bd@pgffunction}
         %
         % --- add anchors for parameters
         \node[anchor=center] 
@@ -171,29 +178,21 @@
 
 \long\def\distribution@impl#1#2#3#4{%
   \begingroup
-  \pgfkeys{/tikz/bayes/.cd, #1}%
-  \pgfkeysgetvalue{/tikz/bayes/distribution}{\distribution}%
-  \pgfkeysgetvalue{/tikz/bayes/distribution name}{\distname}%
-  \pgfkeysgetvalue{/tikz/bayes/pdf xmin}{\bd@xmin}%
-  \pgfkeysgetvalue{/tikz/bayes/pdf xmax}{\bd@xmax}%
-  \pgfkeysgetvalue{/tikz/bayes/pdf name pos}{\bd@namepos}%
-  \pgfkeysgetvalue{/tikz/bayes/pdf parameter pos}{\bd@parpos}%
-  \pgfkeysgetvalue{/tikz/bayes/main parameter count}{\bd@mainparcount}%
   \def\bd@parameters{#4}%
    %
   \def\@tmp@nodelabel{#2}%
   \def\@tmp@nodeposition{#3}%
   \ifx\@tmp@nodeposition\@empty%
      \ifx\@tmp@nodelabel\@empty%
-        \node[bayes/node, matrix] { \bd@draw@distribution{@temp}{} \\ };%
+        \node[bayes/node, matrix, #1] { \bd@draw@distribution{@temp}{} \\ };%
      \else
-        \node[bayes/node, matrix] (#2) { \bd@draw@distribution{#2}{} \\ };%
+        \node[bayes/node, matrix, #1] (#2) { \bd@draw@distribution{#2}{} \\ };%
      \fi
   \else
      \ifx\@tmp@nodelabel\@empty%
-        \node[bayes/node, matrix] at (#3) { \bd@draw@distribution{@temp}{} \\ };%
+        \node[bayes/node, matrix, #1] at (#3) { \bd@draw@distribution{@temp}{} \\ };%
      \else
-        \node[bayes/node, matrix] at (#3) (#2) { \bd@draw@distribution{#2}{} \\ };%
+        \node[bayes/node, matrix, #1] at (#3) (#2) { \bd@draw@distribution{#2}{} \\ };%
      \fi
   \fi
   \endgroup
@@ -331,33 +330,31 @@
   \pgfmathparse{(x^((#1)-1) * (1-x)^((#2)-1}%
 }
 
-\tikzstyle{bayes/gaussian}=[distribution={gausspdf(0, 1)}, 
-                            distribution name=normal,
-                            pdf xmin=-3.5, pdf xmax=3.5,
-                            parameters={\mu, \tau},
-                            main parameter count=1]
+\newcommand\bayesdeclaredistribution[2][]{%
+    \tikzstyle{#2}=[/tikz/bayes/pdf/.cd, #1, /tikz/.cd]%
+}
 
-\tikzstyle{bayes/normal}=[gaussian]
+\bayesdeclaredistribution[function={gausspdf(0, 1)}, 
+   name=gaussian, xmin=-3.5, xmax=3.5, 
+   main parameter count=1]{gaussian}
 
-\tikzstyle{bayes/gamma}=[distribution={gammapdf(2, 3)}, 
-                         distribution name=gamma,
-                         pdf xmin=0, pdf xmax=6,
-                         pdf name pos=0.2,
-                         pdf parameter pos=0.6, 
-                         main parameter count=0,
-                         parameters={k, \theta}]
+\bayesdeclaredistribution[function={gausspdf(0, 1)}, 
+   name=normal, xmin=-3.5, xmax=3.5, 
+   main parameter count=1]{normal}
 
-\tikzstyle{bayes/beta}=[distribution={betapdf(2, 2)}, 
-                         distribution name=beta,
-                         pdf xmin=0, pdf xmax=1,
-                         pdf name pos=0.5,
-                         main parameter count=2]
+\bayesdeclaredistribution[function={gammapdf(2, 3)}, 
+   name=gamma, xmin=0, xmax=6, 
+   name pos=0.15,
+   parameter pos=0.6, 
+   main parameter count=1]{gamma}
 
-\tikzstyle{bayes/exponential}=[distribution={exppdf(5)}, 
-                               distribution name=exponential,
-                               pdf name pos=0.2,
-                               parameters={\lambda},
-                               main parameter count=0]
+\bayesdeclaredistribution[function={betapdf(2, 2)},
+   name=beta, xmin=0, xmax=1,
+   name pos=0.5,
+   main parameter count=2]{beta}
+   
+\bayesdeclaredistribution[function={exppdf(5)},
+   name=exponential, name pos=0.2, main parameter count=0]{exponential}
 
 
 
