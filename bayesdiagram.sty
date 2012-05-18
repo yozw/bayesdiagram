@@ -20,6 +20,7 @@
 
 \RequirePackage{tikz}
 \RequirePackage{pgfplots}
+\RequirePackage{etoolbox}
 \RequirePackage{ifthen}
 
 \usetikzlibrary{calc}
@@ -254,16 +255,20 @@
   \node (#1 parameter \arabic{bd@eqn@params}) {$#2$};  \stepcounter{bd@eqn@params} %
   \& $ }
   
-\def\param#1{%
-  \expandafter\param@{\bd@cur@paramlabel}{#1}
-}%
+\newcommand\param[2][1]{%
+  \def\@space{ }%
+  \xappto\bd@param@draw@arrows{\noexpand\draw[->] (H1) -- (\bd@cur@paramlabel\@space parameter \arabic{bd@eqn@params})}%
+  \expandafter\param@{\bd@cur@paramlabel}{#2}%
+}%;
 
 \long\def\bayesequation@impl#1#2#3#4{
    \def\bd@cur@paramlabel{#2}%
-\matrix[matrix of nodes, ampersand replacement=\&, 
+   \def\bd@param@draw@arrows{}%
+   \matrix[matrix of nodes, ampersand replacement=\&, 
         column sep=0pt, nodes={inner sep=0pt}, #1] (#2) { 
    \setcounter{bd@eqn@params}{1}%
    $#4$ \\ };
+   \bd@param@draw@arrows
 }
 
 % -----------------------------------------------------------------
